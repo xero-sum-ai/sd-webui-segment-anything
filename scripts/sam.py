@@ -507,7 +507,7 @@ def ui_processor(use_random=True, use_cnet=True):
                 choices=["1", "2"], value="2", type="index", visible=False, 
                 label="Select ControlNet input from random segmentation gallery. Choose 2 for Edit-Anything ControlNet.")
         else:
-            cnet_seg_gallery_input = gr.Label(visible=False)
+            cnet_seg_gallery_input = gr.JSON(visible=False)
     with gr.Row():
         cnet_seg_pixel_perfect = gr.Checkbox(value=False, label="Enable Pixel Perfect from lllyasviel. "
                                              "Configure your target width and height on txt2img/img2img default panel before preview if you wish to enable pixel perfect.")
@@ -556,7 +556,7 @@ class Script(scripts.Script):
                     gr.HTML(value="<p>Left click the image to add one positive point (black dot). Right click the image to add one negative point (red dot). Left click the point to remove it.</p>")
                     sam_input_image = gr.Image(label="Image for Segment Anything", elem_id=f"{tab_prefix}input_image", source="upload", type="pil", image_mode="RGBA")
                     sam_remove_dots = gr.Button(value="Remove all point prompts")
-                    sam_dummy_component = gr.Label(visible=False)
+                    sam_dummy_component = gr.JSON(visible=False)
                     sam_remove_dots.click(
                         fn=lambda _: None,
                         _js="samRemoveDots",
