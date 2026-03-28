@@ -117,8 +117,12 @@ def load_dino_model(dino_checkpoint, dino_install_success):
             from local_groundingdino.util.utils import clean_state_dict
         args = SLConfig.fromfile(dino_model_info[dino_checkpoint]["config"])
         dino = build_model(args)
-        checkpoint = torch.hub.load_state_dict_from_url(
-            dino_model_info[dino_checkpoint]["url"], dino_model_dir)
+        dino_url = dino_model_info[dino_checkpoint]["url"]
+        dino_filename = dino_model_info[dino_checkpoint]["checkpoint"]
+        dino_filepath = os.path.join(dino_model_dir, dino_filename)
+        if not os.path.isfile(dino_filepath):
+            torch.hub.download_url_to_file(dino_url, dino_filepath)
+        checkpoint = torch.load(dino_filepath, map_location="cpu")
         dino.load_state_dict(clean_state_dict(
             checkpoint['model']), strict=False)
         dino.to(device=devices.device)
