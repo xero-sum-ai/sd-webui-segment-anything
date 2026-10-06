@@ -19,7 +19,7 @@ from sam_hq.predictor import SamPredictorHQ
 from sam_hq.build_sam_hq import sam_model_registry
 from scripts.dino import dino_model_list, dino_predict_internal, show_boxes, clear_dino_cache, dino_install_issue_text
 from scripts.auto import clear_sem_sam_cache, register_auto_sam, semantic_segmentation, sem_sam_garbage_collect, image_layer_internal, categorical_mask_image
-from scripts.process_params import SAMProcessUnit, max_cn_num
+from scripts.process_params import SAMProcessUnit, gallery_image, max_cn_num
 
 
 refresh_symbol = '\U0001f504'       # 🔄
@@ -48,7 +48,7 @@ def show_masks(image_np, masks: np.ndarray, alpha=0.5):
 def update_mask(mask_gallery, chosen_mask, dilation_amt, input_image):
     print("Dilation Amount: ", dilation_amt)
     if isinstance(mask_gallery, list):
-        mask_image = Image.open(mask_gallery[chosen_mask + 3]['name'])
+        mask_image = gallery_image(mask_gallery[chosen_mask + 3])
     else:
         mask_image = mask_gallery
     binary_img = np.array(mask_image.convert('1'))

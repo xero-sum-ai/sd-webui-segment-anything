@@ -1,7 +1,36 @@
+import os
 from typing import Tuple, List, Dict
 from PIL import Image, ImageOps, ImageEnhance, ImageFilter
 import numpy as np
 from modules import shared
+
+
+def gallery_image(item):
+    """Open one gallery entry as a PIL image.
+
+    Gradio 3 returned a dict with a ``name`` path. Gradio 4, which Forge Neo
+    uses, returns an ``(image, caption)`` tuple. The image is a filepath
+    unless the gallery type is ``pil`` or ``numpy``.
+    """
+    if isinstance(item, (tuple, list)):
+        if len(item) == 0:
+            raise ValueError("Gallery entry is empty")
+        item = item[0]
+    if isinstance(item, dict):
+        path = item.get("name") or item.get("path")
+        if not path:
+            raise ValueError("Gallery entry has no file path")
+        return Image.open(path)
+    if isinstance(item, Image.Image):
+        return item
+    if isinstance(item, np.ndarray):
+        return Image.fromarray(item)
+    if isinstance(item, (str, os.PathLike)):
+        return Image.open(item)
+    path = getattr(item, "path", None) or getattr(item, "name", None)
+    if isinstance(path, str) and path:
+        return Image.open(path)
+    raise TypeError(f"Cannot read a gallery image from {type(item).__name__}")
 
 
 def max_cn_num():
@@ -40,9 +69,9 @@ class SAMInpaintUnit:
         image, mask = None, None
         if self.inpaint_upload_enable and self.input_image is not None and self.output_mask_gallery is not None:
             if self.dilation_checkbox and self.dilation_output_gallery is not None:
-                mask = Image.open(self.dilation_output_gallery[1]['name']).convert('L')
+                mask = gallery_image(self.dilation_output_gallery[1]).convert('L')
             elif self.output_mask_gallery is not None:
-                mask = Image.open(self.output_mask_gallery[self.output_chosen_mask + 3]['name']).convert('L')
+                mask = gallery_image(self.output_mask_gallery[self.output_chosen_mask + 3]).convert('L')
             if mask is not None and self.cnet_inpaint_invert:
                 mask = ImageOps.invert(mask)
             # if self.is_img2img and self.sketch_checkbox and self.inpaint_color_sketch is not None and mask is not None:
@@ -114,7 +143,7 @@ class SAMProcessUnit:
             if len(self.cnet_seg_output_gallery) == 3 and self.cnet_seg_gallery_input is not None:
                 cnet_seg_gallery_index += self.cnet_seg_gallery_input
             self.set_p_value(p, 'control_net_input_image', self.cnet_seg_idx, 
-                             Image.open(self.cnet_seg_output_gallery[cnet_seg_gallery_index]['name']))
+                             gallery_image(self.cnet_seg_output_gallery[cnet_seg_gallery_index]))
         
         if self.cnet_upload_enable and self.cnet_upload_img_inpaint is not None and self.cnet_upload_mask_inpaint is not None:
             self.set_p_value(p, 'control_net_input_image', self.cnet_upload_num, 
